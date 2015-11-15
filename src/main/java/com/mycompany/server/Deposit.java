@@ -32,28 +32,28 @@ public class Deposit {
         setInitialBalance(initialBalance);
     }
     
-    public void setCustomer(String name) throws IOException{
+    private void setCustomer(String name) throws IOException{
         if(name != null && !"".equals(name))
             customer = name;
         else
             throw new IOException("Customer name is invalid!");
     }
     
-    public String getCustomer() throws IOException{
+    private String getCustomer() throws IOException{
         if(customer != null)
             return customer;
         else
             throw new IOException("Customer name is not set!");
     }
     
-    public void setId(String id) throws IOException{
+    private void setId(String id) throws IOException{
         if(id != null && !"".equals(id))
             this.id = id;
         else
             throw new IOException("The ID give is not valid!");
     }
     
-    public String getId() throws IOException{
+    private String getId() throws IOException{
         if(id != null)
             return id;
         else
@@ -61,14 +61,14 @@ public class Deposit {
     }
     
         
-    public void setUpperBound(BigDecimal bound) throws IOException{
+    private void setUpperBound(BigDecimal bound) throws IOException{
         if(bound != null && bound.intValue() >= 0)
             upperBound = bound;
         else
             throw new IOException("Upperbound value in the file is not given or is negative!");
     }
     
-    public void setUpperBound(String bound) throws IOException{
+    private void setUpperBound(String bound) throws IOException{
         if(bound != null){
             BigDecimal intBound = new BigDecimal(bound.replace(",", ""));
             if(intBound.intValue() >= 0)
@@ -80,14 +80,14 @@ public class Deposit {
             throw new IOException("Upperbound value in the file is not given!");
     }
     
-    public BigDecimal getUpperBound() throws IOException{
+    private BigDecimal getUpperBound() throws IOException{
         if(upperBound != null)
             return upperBound;
         else
             throw new IOException("Uperbound is not initiated!");
     }
     
-    public void setInitialBalance(BigDecimal balance) throws IOException{
+    private void setInitialBalance(BigDecimal balance) throws IOException{
         if(balance == null || balance.intValue() < 0)
             throw new IOException("The initial balance is not given in the file or is negative");
         else if(balance.intValue() > getUpperBound().intValue())
@@ -96,7 +96,7 @@ public class Deposit {
             initialBalance = balance;
     }   
     
-    public void setInitialBalance(String balance) throws IOException{
+    private void setInitialBalance(String balance) throws IOException{
         if(balance == null)
             throw new IOException("The initial balance is not given in the file");
         else{ 
@@ -110,7 +110,7 @@ public class Deposit {
         }
     } 
     
-    public BigDecimal getInitialBalance() throws IOException{
+    private BigDecimal getInitialBalance() throws IOException{
         if(initialBalance != null)
             return initialBalance;
         else
