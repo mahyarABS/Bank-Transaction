@@ -117,13 +117,13 @@ public class Server {
     
     private class RequestHandler implements Runnable{
         private Socket clientSocket;
-        private BufferedReader clientRequests;
-        private PrintWriter responses;
+        private BufferedReader clientRequestsReader;
+        private PrintWriter responsesSender;
         public RequestHandler(Socket socket) throws IOException{
             try{
                 clientSocket = socket;
-                clientRequests = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                responses = new PrintWriter(clientSocket.getOutputStream(), true);
+                clientRequestsReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                responsesSender = new PrintWriter(clientSocket.getOutputStream(), true);
             } catch (IOException e) {
                 throw new IOException("Client reader or writer cannot be created!" + socket.getPort());
             }
@@ -133,8 +133,10 @@ public class Server {
             String request = null;
             while(true){
                 try {
-                    if((request = clientRequests.readLine()) != null)
+                    if((request = clientRequestsReader.readLine()) != null){
                         System.err.println(request);
+                        responsesSender.println("true");
+                    }
                 } catch (IOException ex) {
                     System.err.println("error");
                 } finally {

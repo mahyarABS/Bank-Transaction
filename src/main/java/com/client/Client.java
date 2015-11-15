@@ -11,6 +11,8 @@ import java.net.Socket;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
@@ -27,11 +29,12 @@ public class Client {
     private String serverAddr;
     private int portNumber;
     private Socket socket;
-    private BufferedReader serverResponses;
-    private PrintWriter requests;
+    private BufferedReader serverResponsesReader;
+    private PrintWriter requestsSender;
     private String id = null;
     private String type = null;
     private PrintWriter logFile = null;
+    private NodeList requests;
     public Client(){
         connect();
     }
@@ -40,9 +43,12 @@ public class Client {
         try{
             readAndSetConfig();
             socket = new Socket(getServerAddr(), getPortNumber());
-            serverResponses = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            requests = new PrintWriter(socket.getOutputStream(), true);
-            parseAndSendRequests();
+            serverResponsesReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            requestsSender = new PrintWriter(socket.getOutputStream(), true);
+            for (int temp = 0; temp < requests.getLength(); temp++){
+                parseAndSendRequest(temp);
+                handleResponse();
+            }
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
@@ -63,6 +69,8 @@ public class Client {
             
             Element outLog = (Element) terminal.getElementsByTagName("outLog").item(0);
             openLogFile(outLog);
+            
+            requests = doc.getElementsByTagName("transaction");
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.out.println("Running Client failed!");
@@ -133,25 +141,28 @@ public class Client {
             throw new IOException("Type is not set!");
     }
     
-    private void parseAndSendRequests()throws Exception{
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse("terminal.xml");
-        NodeList nList = doc.getElementsByTagName("transaction");
-        for (int temp = 0; temp < nList.getLength(); temp++) {
-            Element transaction = (Element) nList.item(temp);
-            String id = transaction.getAttribute("id");
-            String type = transaction.getAttribute("type");
-            String amount = transaction.getAttribute("amount");
-            String deposit = transaction.getAttribute("deposit");
-            sendRequest(id, type, amount, deposit);
-        }
+    private void parseAndSendRequest(int requestNumber)throws Exception{
+        Element transaction = (Element) requests.item(requestNumber);
+        String id = transaction.getAttribute("id");
+        String type = transaction.getAttribute("type");
+        String amount = transaction.getAttribute("amount");
+        String deposit = transaction.getAttribute("deposit");
+        sendRequest(id, type, amount, deposit);
     }
     
     private void sendRequest(String id, String type, String amount, String deposit){
         String message = "{\"id\":\"" + id + "\", \"type\":\"" + type + "\", \"amount\":\""
                 + amount + "\", \"deposit\":\"" + deposit + "\"}";
-        System.err.println(message);
-        requests.println(message);
+        requestsSender.println(message);
+    }
+    
+    private void handleResponse(){
+        String response = null;
+        try {
+            if((response = serverResponsesReader.readLine()) != null)
+                System.err.println(response);
+        } catch (IOException ex) {
+            System.err.println("error");
+        }
     }
 }
