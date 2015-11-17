@@ -5,16 +5,23 @@
  */
 package com.client;
 
+import com.mycompany.server.Server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import net.sf.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
@@ -33,25 +40,25 @@ public class Client {
     private PrintWriter requestsSender;
     private String id = null;
     private String type = null;
-    private PrintWriter logFile = null;
+    private static final Logger logFile = Logger.getLogger(Server.class.getName());
     private NodeList requests;
     public Client(){
-        connect();
     }
     
-    private void connect(){
+    public void configAndConnectAndSendRequests(){
         try{
             readAndSetConfig();
-            socket = new Socket(getServerAddr(), getPortNumber());
+            connect();
             serverResponsesReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             requestsSender = new PrintWriter(socket.getOutputStream(), true);
-            for (int temp = 0; temp < requests.getLength(); temp++){
-                parseAndSendRequest(temp);
-                handleResponse();
-            }
+            sendRequestsAndHandleResponses();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
+    }
+    
+    private void connect() throws Exception{
+        socket = new Socket(getServerAddr(), getPortNumber());
     }
     
     public void readAndSetConfig() throws IOException{
@@ -79,13 +86,24 @@ public class Client {
         }
     }
     
+    private void sendRequestsAndHandleResponses() throws Exception{
+        for (int temp = 0; temp < requests.getLength(); temp++){
+            parseAndSendRequest(temp);
+            handleResponse();
+        }
+    }
+    
     private void setServerAttributes(Element server) throws IOException{
         setServerAddr(server.getAttribute("ip"));
         setPortNumber(Integer.parseInt(server.getAttribute("port")));
     }
     
     private void openLogFile(Element outLog) throws IOException{
-        logFile = new PrintWriter(outLog.getAttribute("path"), "UTF-8");
+        String logFileName = outLog.getAttribute("path");
+        FileHandler logFileHandler = new FileHandler(logFileName, true);
+        logFileHandler.setFormatter(new ClientFormatter());
+        logFile.addHandler(logFileHandler);
+        logFile.setLevel(Level.ALL);
     }
     
     private void setServerAddr(String address) throws IOException{
@@ -151,18 +169,36 @@ public class Client {
     }
     
     private void sendRequest(String id, String type, String amount, String deposit){
-        String message = "{\"id\":\"" + id + "\", \"type\":\"" + type + "\", \"amount\":\""
-                + amount + "\", \"deposit\":\"" + deposit + "\"}";
-        requestsSender.println(message);
+        JSONObject jsonMessage = new JSONObject();
+        jsonMessage.put("id", id);
+        jsonMessage.put("type", type);
+        jsonMessage.put("amount", amount);
+        jsonMessage.put("deposit", deposit);
+        requestsSender.println(jsonMessage.toString());
     }
     
     private void handleResponse(){
         String response = null;
         try {
-            if((response = serverResponsesReader.readLine()) != null)
+            if((response = serverResponsesReader.readLine()) != null){
                 System.err.println(response);
+                logFile.log(Level.FINE, "transaction completed successfully");
+            }
         } catch (IOException ex) {
             System.err.println("error");
         }
+    }
+    
+    private class ClientFormatter extends Formatter {
+
+        @Override
+        public String format(LogRecord record) {
+            Date date = new Date();
+            SimpleDateFormat dateFromatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss:SSS a zzz");
+            String message = dateFromatter.format(date) + " Thread ID :" + Thread.currentThread().getId()
+                    + "\n" + record.getMessage() + "\n";
+            return message;
+        }
+
     }
 }

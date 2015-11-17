@@ -7,6 +7,7 @@ package com.mycompany.server;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import javax.imageio.IIOException;
 
 /**
@@ -16,30 +17,30 @@ import javax.imageio.IIOException;
 public class Deposit {
     private String customer = null;
     private String id = null;
-    private BigDecimal initialBalance = null;
+    private BigDecimal balance = null;
     private BigDecimal upperBound = null;
     public Deposit(String customer, String id, BigDecimal initialBalance, BigDecimal upperBound) throws IOException{
-        setCustomer(customer);
+        setCustomerName(customer);
         setId(id);
         setUpperBound(upperBound);
-        setInitialBalance(initialBalance);
+        setBalance(initialBalance);
     }
     
     public Deposit(String customer, String id, String initialBalance, String upperBound) throws IOException{
-        setCustomer(customer);
+        setCustomerName(customer);
         setId(id);
         setUpperBound(upperBound);
-        setInitialBalance(initialBalance);
+        setBalance(initialBalance);
     }
     
-    private void setCustomer(String name) throws IOException{
+    private void setCustomerName(String name) throws IOException{
         if(name != null && !"".equals(name))
             customer = name;
         else
             throw new IOException("Customer name is invalid!");
     }
     
-    private String getCustomer() throws IOException{
+    public String getCustomerName() throws IOException{
         if(customer != null)
             return customer;
         else
@@ -53,7 +54,7 @@ public class Deposit {
             throw new IOException("The ID give is not valid!");
     }
     
-    private String getId() throws IOException{
+    public String getId() throws IOException{
         if(id != null)
             return id;
         else
@@ -80,48 +81,74 @@ public class Deposit {
             throw new IOException("Upperbound value in the file is not given!");
     }
     
-    private BigDecimal getUpperBound() throws IOException{
+    public BigDecimal getUpperBound() throws IOException{
         if(upperBound != null)
             return upperBound;
         else
             throw new IOException("Uperbound is not initiated!");
     }
     
-    private void setInitialBalance(BigDecimal balance) throws IOException{
-        if(balance == null || balance.intValue() < 0)
-            throw new IOException("The initial balance is not given in the file or is negative");
+    public String getUpperBoundInString() throws IOException{
+        BigDecimal value = getUpperBound();
+        DecimalFormat myFormatter = new DecimalFormat("###,###");
+        return myFormatter.format(value);
+    }
+    
+    private void setBalance(BigDecimal balance) throws IOException{
+        if(balance == null)
+            throw new IOException("The balance is not given in the file or is negative");
+        else if(balance.intValue() < 0)
+            throw new BalanceIsNotEnoughException();
         else if(balance.intValue() > getUpperBound().intValue())
-            throw new UpperBoundExceedException("The initial balance is bigger than upperbound!");
+            throw new UpperBoundExceedException("The balance is bigger than upperbound!");
         else
-            initialBalance = balance;
+            this.balance = balance;
     }   
     
-    private void setInitialBalance(String balance) throws IOException{
+    private void setBalance(String balance) throws IOException{
         if(balance == null)
             throw new IOException("The initial balance is not given in the file");
         else{ 
-            BigDecimal intBalance = new BigDecimal(balance.replace(",", ""));
-            if(intBalance.intValue() > getUpperBound().intValue())
-                throw new UpperBoundExceedException("The initial balance is bigger than upperbound!");
-            else if(intBalance.intValue() < 0)
-                throw new IOException("The initial balance given is negative");
-            else
-                initialBalance = intBalance;
+            BigDecimal newBalance = new BigDecimal(balance.replace(",", ""));
+            setBalance(newBalance);
         }
     } 
     
-    private BigDecimal getInitialBalance() throws IOException{
-        if(initialBalance != null)
-            return initialBalance;
+    public BigDecimal getBalance() throws IOException{
+        if(this.balance != null)
+            return this.balance;
         else
             throw new IOException("The initial balance is not set!");
     }
     
-    public void addBalanceToDeposit(BigDecimal newBalance){
-        
+    public String getBalanceInString() throws IOException{
+        BigDecimal value = getBalance();
+        DecimalFormat myFormatter = new DecimalFormat("###,###");
+        return myFormatter.format(value);
     }
     
-    public void withdraw(BigDecimal amount){
-        
+    public synchronized void addBalanceToDeposit(BigDecimal newCash) throws IOException{
+        BigDecimal newBalance = getBalance().add(newCash);
+        setBalance(newBalance);
+    }
+    
+    public synchronized void addBalanceToDeposit(String newCash) throws IOException{
+        BigDecimal cash = new BigDecimal(newCash.replace(",", ""));
+        BigDecimal newBalance = getBalance().add(cash);
+        try{
+            setBalance(newBalance);
+        } catch (UpperBoundExceedException ex){
+            throw new UpperBoundExceedException(ex.getMessage() + "\nThe request was " + newCash + " and upperbound is " + getUpperBoundInString());
+        }
+    }
+    
+    public synchronized void withdraw(String withdrawAmount) throws IOException{
+        BigDecimal amount = new BigDecimal(withdrawAmount.replace(",", ""));
+        BigDecimal newBalance = getBalance().subtract(amount);
+        try{
+            setBalance(newBalance);
+        } catch (BalanceIsNotEnoughException e){
+            throw new BalanceIsNotEnoughException("The balance amount is " + getBalanceInString() + " and is not enough to withdraw up to " + withdrawAmount + "!");
+        }
     }
 }
