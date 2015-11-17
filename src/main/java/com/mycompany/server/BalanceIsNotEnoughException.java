@@ -9,9 +9,9 @@ package com.mycompany.server;
  *
  * @author mahyar
  */
-public class BalanceIsNotEnoughException extends RuntimeException{
-    public BalanceIsNotEnoughException(){ super(); }
-    public BalanceIsNotEnoughException(String err){ super(err); }
+public class BalanceIsNotEnoughException extends RuntimeException {
+    public BalanceIsNotEnoughException() { super(); }
+    public BalanceIsNotEnoughException(String err) { super(err); }
     public BalanceIsNotEnoughException(String s, Throwable throwable) { super(s, throwable); }
     public BalanceIsNotEnoughException(Throwable throwable) { super(throwable); }
 }

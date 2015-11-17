@@ -8,3 +8,35 @@ Tue 2015.11.17 at 08:51:15:213 PM IRST Thread ID :1
 Client with Thread ID : {0} connected.
 Tue 2015.11.17 at 09:34:33:031 PM IRST Thread ID :1
 Client with Thread ID : {0} connected.
+Tue 2015.11.17 at 11:10:45:582 PM IRST Thread ID :1
+Client with Thread ID : {0} connected.
+Wed 2015.11.18 at 12:09:42:022 AM IRST Thread ID :1
+Client with Thread ID : {0} connected.
+Wed 2015.11.18 at 12:12:28:313 AM IRST Thread ID :1
+Client with Thread ID : {0} connected.
+Wed 2015.11.18 at 12:38:05:274 AM IRST Thread ID :1
+Client with Thread ID : 10 connected.
+Wed 2015.11.18 at 12:38:05:361 AM IRST Thread ID :10
+The balance is bigger than upperbound!
+The request was 3,000 the balance is 13,000and the upperbound is 13,000
+Wed 2015.11.18 at 12:42:32:525 AM IRST Thread ID :1
+Client with Thread ID : 10 connected.
+Wed 2015.11.18 at 12:42:32:602 AM IRST Thread ID :10
+The transaction with id : 1 failed for deposit id : 33227781 client type : deposit. 
+The balance is bigger than upperbound!
+The request was 3,000 the balance is 13,000and the upperbound is 13,000
+Wed 2015.11.18 at 12:44:33:890 AM IRST Thread ID :1
+Client with Thread ID : 10 connected.
+Wed 2015.11.18 at 12:44:33:969 AM IRST Thread ID :10
+The transaction with id : 1 failed for deposit id : 33227781 request type : deposit client IP : /127.0.0.1. 
+The balance is bigger than upperbound!
+The request was 3,000 the balance is 13,000and the upperbound is 13,000
+Wed 2015.11.18 at 12:58:48:841 AM IRST Thread ID :9
+Sync command executed successfully.
+Wed 2015.11.18 at 01:16:00:062 AM IRST Thread ID :1
+Client with Thread ID : 10 connected.
+Wed 2015.11.18 at 01:17:07:408 AM IRST Thread ID :1
+Client with Thread ID : 11 connected.
+Wed 2015.11.18 at 01:17:07:528 AM IRST Thread ID :11
+The transaction with id : 1 failed for deposit id : 33227781 request type : withdraw client IP : /127.0.0.1. 
+The balance amount is 10,000 and is not enough to withdraw up to 100,000!

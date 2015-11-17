@@ -19,84 +19,83 @@ public class Deposit {
     private String id = null;
     private BigDecimal balance = null;
     private BigDecimal upperBound = null;
-    public Deposit(String customer, String id, BigDecimal initialBalance, BigDecimal upperBound) throws IOException{
+    public Deposit(String customer, String id, BigDecimal initialBalance, BigDecimal upperBound) {
         setCustomerName(customer);
         setId(id);
         setUpperBound(upperBound);
         setBalance(initialBalance);
     }
     
-    public Deposit(String customer, String id, String initialBalance, String upperBound) throws IOException{
+    public Deposit(String customer, String id, String initialBalance, String upperBound) {
         setCustomerName(customer);
         setId(id);
         setUpperBound(upperBound);
         setBalance(initialBalance);
     }
     
-    private void setCustomerName(String name) throws IOException{
+    private void setCustomerName(String name) {
         if(name != null && !"".equals(name))
             customer = name;
         else
-            throw new IOException("Customer name is invalid!");
+            throw new DepositIdentificationException("Customer name is invalid!");
     }
     
-    public String getCustomerName() throws IOException{
+    public String getCustomerName() {
         if(customer != null)
             return customer;
         else
-            throw new IOException("Customer name is not set!");
+            throw new DepositIdentificationException("Customer name is not set!");
     }
     
-    private void setId(String id) throws IOException{
+    private void setId(String id) {
         if(id != null && !"".equals(id))
             this.id = id;
         else
-            throw new IOException("The ID give is not valid!");
+            throw new DepositIdentificationException("The ID give is not valid!");
     }
     
-    public String getId() throws IOException{
+    public String getId() {
         if(id != null)
             return id;
         else
-            throw new IOException("ID is not initiated!");
+            throw new DepositIdentificationException("ID is not initiated!");
     }
     
         
-    private void setUpperBound(BigDecimal bound) throws IOException{
+    private void setUpperBound(BigDecimal bound) {
         if(bound != null && bound.intValue() >= 0)
             upperBound = bound;
+        else if(bound.intValue() < 0)
+            throw new UpperBoundIsNotValidException("Upperbound value is negative!");
         else
-            throw new IOException("Upperbound value in the file is not given or is negative!");
+            throw new UpperBoundIsNotValidException("Upperbound value in the file is not given!");
     }
     
-    private void setUpperBound(String bound) throws IOException{
+    private void setUpperBound(String bound) {
         if(bound != null){
             BigDecimal intBound = new BigDecimal(bound.replace(",", ""));
-            if(intBound.intValue() >= 0)
-                upperBound = intBound;
-            else
-                throw new IOException("Upperbound value is negative!");
+            setUpperBound(intBound);
         }
         else
-            throw new IOException("Upperbound value in the file is not given!");
+            throw new UpperBoundIsNotValidException("Upperbound value in the file is not given!");
     }
     
-    public BigDecimal getUpperBound() throws IOException{
+    public BigDecimal getUpperBound() {
         if(upperBound != null)
             return upperBound;
         else
-            throw new IOException("Uperbound is not initiated!");
+            throw new UpperBoundIsNotValidException("Uperbound is not initiated!");
     }
     
-    public String getUpperBoundInString() throws IOException{
+    public String getUpperBoundInString() {
         BigDecimal value = getUpperBound();
         DecimalFormat myFormatter = new DecimalFormat("###,###");
         return myFormatter.format(value);
     }
     
-    private void setBalance(BigDecimal balance) throws IOException{
+    private void setBalance(BigDecimal balance) {
         if(balance == null)
-            throw new IOException("The balance is not given in the file or is negative");
+            throw new BalanceIsNotValidException("The balance is not given in the file or is negative");
         else if(balance.intValue() < 0)
             throw new BalanceIsNotEnoughException();
         else if(balance.intValue() > getUpperBound().intValue())
@@ -105,49 +104,49 @@ public class Deposit {
             this.balance = balance;
     }   
     
-    private void setBalance(String balance) throws IOException{
+    private void setBalance(String balance) {
         if(balance == null)
-            throw new IOException("The initial balance is not given in the file");
+            throw new BalanceIsNotValidException("The initial balance is not given in the file");
         else{ 
             BigDecimal newBalance = new BigDecimal(balance.replace(",", ""));
             setBalance(newBalance);
         }
     } 
     
-    public BigDecimal getBalance() throws IOException{
+    public BigDecimal getBalance() {
         if(this.balance != null)
             return this.balance;
         else
-            throw new IOException("The initial balance is not set!");
+            throw new BalanceIsNotValidException("The initial balance is not set!");
     }
     
-    public String getBalanceInString() throws IOException{
+    public String getBalanceInString() {
         BigDecimal value = getBalance();
         DecimalFormat myFormatter = new DecimalFormat("###,###");
         return myFormatter.format(value);
     }
     
-    public synchronized void addBalanceToDeposit(BigDecimal newCash) throws IOException{
+    public synchronized void addBalanceToDeposit(BigDecimal newCash) {
         BigDecimal newBalance = getBalance().add(newCash);
         setBalance(newBalance);
     }
     
-    public synchronized void addBalanceToDeposit(String newCash) throws IOException{
+    public synchronized void addBalanceToDeposit(String newCash) {
         BigDecimal cash = new BigDecimal(newCash.replace(",", ""));
         BigDecimal newBalance = getBalance().add(cash);
         try{
             setBalance(newBalance);
-        } catch (UpperBoundExceedException ex){
-            throw new UpperBoundExceedException(ex.getMessage() + "\nThe request was " + newCash + " and upperbound is " + getUpperBoundInString());
+        } catch (UpperBoundExceedException ex) {
+            throw new UpperBoundExceedException(ex.getMessage() + "\nThe request was " + newCash + " the balance is " + getBalanceInString() + " and the upperbound is " + getUpperBoundInString());
         }
     }
     
-    public synchronized void withdraw(String withdrawAmount) throws IOException{
+    public synchronized void withdraw(String withdrawAmount) {
         BigDecimal amount = new BigDecimal(withdrawAmount.replace(",", ""));
         BigDecimal newBalance = getBalance().subtract(amount);
         try{
             setBalance(newBalance);
-        } catch (BalanceIsNotEnoughException e){
+        } catch (BalanceIsNotEnoughException ex) {
             throw new BalanceIsNotEnoughException("The balance amount is " + getBalanceInString() + " and is not enough to withdraw up to " + withdrawAmount + "!");
         }
     }

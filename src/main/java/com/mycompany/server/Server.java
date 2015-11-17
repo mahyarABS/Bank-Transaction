@@ -37,7 +37,6 @@ import net.sf.json.JSONSerializer;
  * @author mahyar
  */
 public class Server {
-
     private static Server server = new Server();
     private int portNumber = -1;
     private static final Logger logFile = Logger.getLogger(Server.class.getName());
@@ -52,51 +51,39 @@ public class Server {
     }
 
     public void start() {
-        readAndSetConfig();
-        ServerSocket listener = null;
-        try {
-            (new Thread(new InputHandler())).start();
-            listener = new ServerSocket(getPortNumber());
-            while (true) {
-                Socket socket = listener.accept();
-                Thread newClient = new Thread(new RequestHandler(socket));
-                newClient.start();
-                logFile.log(Level.FINE, "Client with Thread ID : {0} connected.", newClient.getId());
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        } finally {
-            try {
-                if (listener != null) {
-                    listener.close();
+        try{
+            readAndSetConfig();
+            try (ServerSocket listener = new ServerSocket(getPortNumber())) {
+                (new Thread(new InputHandler())).start();
+                while (true) {
+                    Socket socket = listener.accept();
+                    Thread newClient = new Thread(new RequestHandler(socket));
+                    newClient.start();
+                    logFile.log(Level.FINE, "Client with Thread ID : " + newClient.getId() + " connected.");
                 }
             } catch (IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                logFile.log(Level.FINE, "Server failed to start!\nlistener failed.");
             }
+        } catch (ServerRequestHandlerException ex) {
+            logFile.log(Level.FINE, ex.getMessage());
+        } catch (InvalidConfigException ex) {
+            logFile.log(Level.FINE, "Server failed to start!\nConfig file has errors.\n" + ex.getMessage() + ".");
+        } catch (IOException ex) {
+            logFile.log(Level.FINE, "Server failed to start!\nJSON file has errors.");
         }
     }
 
-    public void readAndSetConfig() {
-        try {
-            String json = readFileToString("core.json");
-            JSONObject jsonObject = (JSONObject) JSONSerializer.toJSON(json);
-            setPortNumber(jsonObject.getInt("port"));
-            JSONArray depositJsonArray = jsonObject.getJSONArray("deposits");
-            addInitialDepositsToHashMap(depositJsonArray);
-            logFileName = jsonObject.getString("outLog");
-            FileHandler logFileHandler = new FileHandler(logFileName, true);
-            logFileHandler.setFormatter(new ServerFormatter());
-            logFile.addHandler(logFileHandler);
-            logFile.setLevel(Level.ALL);
-        } catch (FileNotFoundException ex) {
-            System.out.println("The file does not exist!");
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        } catch (UpperBoundExceedException e) {
-            System.out.println(e.getMessage());
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+    public void readAndSetConfig() throws IOException {
+        String json = readFileToString("core.json");
+        JSONObject jsonObject = (JSONObject) JSONSerializer.toJSON(json);
+        setPortNumber(jsonObject.getInt("port"));
+        JSONArray depositJsonArray = jsonObject.getJSONArray("deposits");
+        addInitialDepositsToHashMap(depositJsonArray);
+        logFileName = jsonObject.getString("outLog");
+        FileHandler logFileHandler = new FileHandler(logFileName, true);
+        logFileHandler.setFormatter(new ServerFormatter());
+        logFile.addHandler(logFileHandler);
+        logFile.setLevel(Level.ALL);
     }
 
     private String readFileToString(String filename) throws FileNotFoundException {
@@ -107,105 +94,120 @@ public class Server {
         return json;
     }
 
-    private void addInitialDepositsToHashMap(JSONArray depositJsonArray) throws IOException {
+    private void addInitialDepositsToHashMap(JSONArray depositJsonArray) {
         for (int i = 0; i < depositJsonArray.size(); i++) {
             JSONObject deposit = depositJsonArray.getJSONObject(i);
             String customer = deposit.getString("customer");
             String id = deposit.getString("id");
             String initialBalance = deposit.getString("initialBalance");
             String upperBound = deposit.getString("upperBound");
-            deposits.put(id, new Deposit(customer, id, initialBalance, upperBound));
+            try {
+                deposits.put(id, new Deposit(customer, id, initialBalance, upperBound));
+            } catch (UpperBoundExceedException | UpperBoundIsNotValidException | BalanceIsNotEnoughException | BalanceIsNotValidException | DepositIdentificationException ex) {
+                logFile.log(Level.FINE, "Deposit with id " + id + " could not be added input variables are invalid or not set.\n" + ex.getMessage());
+            }
         }
     }
 
-    private void setPortNumber(int port) throws IOException {
-        if (port >= 0 && port <= 65536) {
+    private void setPortNumber(int port) {
+        if (port >= 0 && port <= 65536)
             portNumber = port;
-        } else {
-            throw new IOException("The port number is out or range!");
-        }
+        else 
+            throw new InvalidConfigException("The port number is out or range!");
     }
 
-    private int getPortNumber() throws IOException {
+    private int getPortNumber() {
         if (portNumber == -1) {
-            throw new IOException("Port number is not set");
+            throw new InvalidConfigException("Port number is not set");
         }
         return portNumber;
     }
 
     private class RequestHandler implements Runnable {
-
         private Socket clientSocket;
         private BufferedReader clientRequestsReader;
         private PrintWriter responsesSender;
 
-        public RequestHandler(Socket socket) throws IOException {
+        public RequestHandler(Socket socket) {
             try {
                 clientSocket = socket;
                 clientRequestsReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 responsesSender = new PrintWriter(clientSocket.getOutputStream(), true);
             } catch (IOException e) {
-                throw new IOException("Client reader or writer cannot be created!" + socket.getPort());
+                throw new ServerRequestHandlerException("Client reader or writer cannot be created!" + socket.getPort());
             }
         }
 
         private void handleRequests() {
             String request = null;
+            String transactionId = null;
+            String id = null;
+            String type = null;
             while (true) {
                 try {
                     if ((request = clientRequestsReader.readLine()) != null) {
                         System.err.println(request);
                         JSONObject newRequest = (JSONObject) JSONSerializer.toJSON(request);
-                        String id = newRequest.getString("deposit");
+                        transactionId = newRequest.getString("id");
+                        id = newRequest.getString("deposit");
                         Deposit deposit = (Deposit) deposits.get(id);
-                        if ("deposit".equals(newRequest.getString("type"))) {
+                        type = newRequest.getString("type");
+                        if ("deposit".equals(type)) {
                             deposit.addBalanceToDeposit(newRequest.getString("amount"));
-                        } else if ("withdraw".equals(newRequest.getString("type"))) {
+                        } else if ("withdraw".equals(type)) {
                             deposit.withdraw(newRequest.getString("amount"));
                         }
-                        responsesSender.println("ok");
+                        sendSuccessResponse("Deposit successfully updated.\nNew balance amount is : " + deposit.getBalanceInString());
                     }
-                } catch (UpperBoundExceedException ex){
-                    System.err.println(ex.getMessage());
-                } catch (BalanceIsNotEnoughException ex){
-                    System.err.println(ex.getMessage());
-                } catch (IOException ex) {
-                    responsesSender.println("error");
-                    System.err.println("error");
+                } catch (UpperBoundExceedException | UpperBoundIsNotValidException | BalanceIsNotEnoughException | BalanceIsNotValidException | IOException ex) {
+                    logFile.log(Level.FINE, "The transaction with id : " + transactionId + " failed for deposit id : " + id + " request type : " + type + " client IP : " + clientSocket.getInetAddress() + ". \n" + ex.getMessage());
+                    sendFailResponse(ex.getMessage());
                 } finally {
 
                 }
             }
         }
-
+        
+        private void sendSuccessResponse(String message) {
+            JSONObject response = new JSONObject();
+            response.put("status", "success");
+            response.put("message", message);
+            responsesSender.println(response.toString());
+        }
+        
+        private void sendFailResponse(String message) {
+            JSONObject response = new JSONObject();
+            response.put("status", "fail");
+            response.put("message", message);
+            responsesSender.println(response.toString());
+        }
+        
         @Override
         public void run() {
             handleRequests();
         }
     }
 
-    private void sync() throws IOException {
+    private void sync() throws IOException {       
+        JSONObject serverData = new JSONObject();
+        serverData.put("port", 8080);
+        JSONArray depositsData = new JSONArray();
+        Iterator<String> depositsIterator = deposits.keySet().iterator();
+        while (depositsIterator.hasNext()) {
+            String id = depositsIterator.next();
+            Deposit deposit = (Deposit) deposits.get(id);
+            JSONObject depositJSON = new JSONObject();
+            depositJSON.put("customer", deposit.getCustomerName());
+            depositJSON.put("id", deposit.getId());
+            depositJSON.put("initialBalance", deposit.getBalanceInString());
+            depositJSON.put("upperBound", deposit.getUpperBoundInString());
+            depositsData.add(depositJSON);   
+        }
+        serverData.put("deposits", depositsData);
+        serverData.put("outLog", logFileName);
         try (PrintWriter coreJSON = new PrintWriter("core.json")) {
-            coreJSON.print("{ \n  \"port\":8080,\n  \"deposits\":[\n");
-            System.err.println(logFileName);
-            Iterator<String> depositsIterator = deposits.keySet().iterator();
-            while (depositsIterator.hasNext()) {
-                String id = depositsIterator.next();
-                Deposit deposit = (Deposit) deposits.get(id);
-                coreJSON.print("{\n  \"customer\":\"" + deposit.getCustomerName() + "\",\n  \"id\":\""
-                        + deposit.getId() + "\",\n  \"initialBalance\":\"" + deposit.getBalanceInString()
-                        + "\",\n  \"upperBound\":\"" + deposit.getUpperBoundInString() + "\"\n}");
-                if (depositsIterator.hasNext()) {
-                    coreJSON.print(",");
-                }
-                coreJSON.print("\n");
-            }
-            coreJSON.print("],\n  \"outLog\":\"" + logFileName + "\"\n}");
+            coreJSON.println(serverData.toString(2));
             coreJSON.close();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -221,10 +223,13 @@ public class Server {
                     while ((input = br.readLine()) != null) {
                         if ("sync".equals(input)) {
                             sync();
+                            logFile.log(Level.FINE, "Sync command executed successfully.");
                         }
                     }
-                } catch (IOException io) {
-                    io.printStackTrace();
+                } catch (UpperBoundIsNotValidException | BalanceIsNotValidException ex) {
+                    logFile.log(Level.FINE, "Input command execution failed.\n" + ex.getMessage());
+                } catch (IOException ex) {
+                    logFile.log(Level.FINE, "Input command execution failed.\nFile could not be used.");
                 }
             }
         }
