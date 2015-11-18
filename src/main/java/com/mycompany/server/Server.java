@@ -11,11 +11,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -27,7 +24,6 @@ import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
@@ -158,6 +154,7 @@ public class Server {
                             deposit.withdraw(newRequest.getString("amount"));
                         }
                         sendSuccessResponse("Deposit successfully updated.\nNew balance amount is : " + deposit.getBalanceInString());
+                        logFile.log(Level.FINE, "The transaction with id : " + transactionId + " succeeded for deposit id : " + id + " request type : " + type + " client IP : " + clientSocket.getInetAddress() + ". \n" + "Deposit successfully updated.\nNew balance amount is : " + deposit.getBalanceInString());
                     }
                 } catch (UpperBoundExceedException | UpperBoundIsNotValidException | BalanceIsNotEnoughException | BalanceIsNotValidException | IOException ex) {
                     logFile.log(Level.FINE, "The transaction with id : " + transactionId + " failed for deposit id : " + id + " request type : " + type + " client IP : " + clientSocket.getInetAddress() + ". \n" + ex.getMessage());

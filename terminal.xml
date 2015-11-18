@@ -5,6 +5,62 @@
 		<transaction id="1" type="deposit" amount="3,000" deposit="33227781" />
 		<transaction id="2" type="withdraw" amount="100,000" deposit="33227781" />
 		<transaction id="3" type="withdraw" amount="10,000" deposit="33227781" />
-		<transaction id="4" type="deposit" amount="5,000" deposit="33227781" />
+		<transaction id="4" type="deposit" amount="1,000" deposit="33227781" />
+		<transaction id="5" type="deposit" amount="3,000" deposit="35527439" />
+		<transaction id="6" type="withdraw" amount="1,000" deposit="33227781" />
+		<transaction id="7" type="deposit" amount="5,000" deposit="33227781" />
+		<transaction id="8" type="deposit" amount="7,000" deposit="33227781" />
+		<transaction id="9" type="withdraw" amount="12,000" deposit="33227781" />
+		<transaction id="10" type="deposit" amount="52,000" deposit="35527439" />
+		<transaction id="11" type="withdraw" amount="58,000" deposit="33227781" />
+		<transaction id="12" type="deposit" amount="54,000" deposit="33227781" />
+		<transaction id="13" type="deposit" amount="12,000" deposit="33227781" />
+		<transaction id="14" type="withdraw" amount="100" deposit="35527439" />
+		<transaction id="15" type="deposit" amount="20" deposit="33227781" />
+		<transaction id="16" type="deposit" amount="3,000" deposit="33227781" />
+		<transaction id="17" type="withdraw" amount="100" deposit="33227781" />
+		<transaction id="18" type="withdraw" amount="10,000" deposit="33227781" />
+		<transaction id="19" type="deposit" amount="1,000" deposit="33227781" />
+		<transaction id="20" type="deposit" amount="3,000" deposit="35527439" />
+		<transaction id="21" type="withdraw" amount="10" deposit="33227781" />
+		<transaction id="22" type="deposit" amount="5,000" deposit="33227781" />
+		<transaction id="23" type="deposit" amount="7,000" deposit="33227781" />
+		<transaction id="24" type="withdraw" amount="12,000" deposit="33227781" />
+		<transaction id="25" type="deposit" amount="0" deposit="35527439" />
+		<transaction id="26" type="withdraw" amount="58,000" deposit="33227781" />
+		<transaction id="27" type="deposit" amount="54,000" deposit="33227781" />
+		<transaction id="28" type="deposit" amount="120,000" deposit="33227781" />
+		<transaction id="29" type="withdraw" amount="235" deposit="35527439" />
+		<transaction id="30" type="deposit" amount="20" deposit="33227781" />
+		<transaction id="31" type="deposit" amount="3,000" deposit="33227781" />
+		<transaction id="32" type="withdraw" amount="100,000" deposit="33227781" />
+		<transaction id="33" type="withdraw" amount="10,000" deposit="33227781" />
+		<transaction id="34" type="deposit" amount="1,000" deposit="33227781" />
+		<transaction id="35" type="deposit" amount="500" deposit="35527439" />
+		<transaction id="36" type="withdraw" amount="1,000" deposit="33227781" />
+		<transaction id="37" type="deposit" amount="5,000" deposit="33227781" />
+		<transaction id="38" type="deposit" amount="7,000" deposit="33227781" />
+		<transaction id="39" type="withdraw" amount="12,000" deposit="33227781" />
+		<transaction id="40" type="deposit" amount="600" deposit="35527439" />
+		<transaction id="41" type="withdraw" amount="80" deposit="33227781" />
+		<transaction id="42" type="deposit" amount="54,000" deposit="33227781" />
+		<transaction id="43" type="deposit" amount="12,000" deposit="33227781" />
+		<transaction id="44" type="withdraw" amount="100" deposit="35527439" />
+		<transaction id="45" type="deposit" amount="20" deposit="33227781" />
+		<transaction id="46" type="deposit" amount="3,000" deposit="33227781" />
+		<transaction id="47" type="withdraw" amount="100,000" deposit="33227781" />
+		<transaction id="48" type="withdraw" amount="10,000" deposit="33227781" />
+		<transaction id="49" type="deposit" amount="1,000" deposit="33227781" />
+		<transaction id="50" type="deposit" amount="3,000" deposit="35527439" />
+		<transaction id="51" type="withdraw" amount="1,000" deposit="33227781" />
+		<transaction id="52" type="deposit" amount="5,000" deposit="33227781" />
+		<transaction id="53" type="deposit" amount="7,000" deposit="33227781" />
+		<transaction id="54" type="withdraw" amount="500,000" deposit="33227781" />
+		<transaction id="55" type="deposit" amount="52,000" deposit="35527439" />
+		<transaction id="56" type="withdraw" amount="58,000" deposit="33227781" />
+		<transaction id="57" type="deposit" amount="54,000" deposit="33227781" />
+		<transaction id="58" type="deposit" amount="12,000" deposit="33227781" />
+		<transaction id="59" type="withdraw" amount="100" deposit="35527439" />
+		<transaction id="60" type="deposit" amount="20" deposit="33227781" />
 	</transactions>
 </terminal>

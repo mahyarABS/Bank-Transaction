@@ -5,10 +5,8 @@
  */
 package com.mycompany.server;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import javax.imageio.IIOException;
 
 /**
  *
@@ -93,7 +91,7 @@ public class Deposit {
         return myFormatter.format(value);
     }
     
-    private void setBalance(BigDecimal balance) {
+    private synchronized void setBalance(BigDecimal balance) {
         if(balance == null)
             throw new BalanceIsNotValidException("The balance is not given in the file or is negative");
         else if(balance.intValue() < 0)
@@ -113,7 +111,7 @@ public class Deposit {
         }
     } 
     
-    public BigDecimal getBalance() {
+    public synchronized BigDecimal getBalance() {
         if(this.balance != null)
             return this.balance;
         else
@@ -126,12 +124,12 @@ public class Deposit {
         return myFormatter.format(value);
     }
     
-    public synchronized void addBalanceToDeposit(BigDecimal newCash) {
+    public void addBalanceToDeposit(BigDecimal newCash) {
         BigDecimal newBalance = getBalance().add(newCash);
         setBalance(newBalance);
     }
     
-    public synchronized void addBalanceToDeposit(String newCash) {
+    public void addBalanceToDeposit(String newCash) {
         BigDecimal cash = new BigDecimal(newCash.replace(",", ""));
         BigDecimal newBalance = getBalance().add(cash);
         try{
@@ -141,7 +139,7 @@ public class Deposit {
         }
     }
     
-    public synchronized void withdraw(String withdrawAmount) {
+    public void withdraw(String withdrawAmount) {
         BigDecimal amount = new BigDecimal(withdrawAmount.replace(",", ""));
         BigDecimal newBalance = getBalance().subtract(amount);
         try{

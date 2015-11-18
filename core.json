@@ -4,14 +4,14 @@
         {
       "customer": "Ali Alavi",
       "id": "33227781",
-      "initialBalance": "1,000",
-      "upperBound": "13,000"
+      "initialBalance": "82,960",
+      "upperBound": "100,000"
     },
         {
       "customer": "Reza Rezaei",
       "id": "35527439",
-      "initialBalance": "0",
-      "upperBound": "0"
+      "initialBalance": "13,345,670",
+      "upperBound": "500,000,000"
     }
   ],
   "outLog": "server.out"
